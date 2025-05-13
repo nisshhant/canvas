@@ -1,0 +1,573 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric.js Advanced Editor</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #333;
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            min-width: 200px;
+            max-width: 300px;
+            width: 150px;
+            display: grid;
+            gap: 10px;
+            padding: 1px;
+            background: #ffffff;
+            border-right: 2px solid #ddd;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            justify-content: start;
+        }
+
+        .toolbox-header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        /* Shape Boxes */
+        .shapebox{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 5px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            height: 200px;
+            outline-style: auto
+        }
+
+        .buttonInARow {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+
+
+        /* Tool Items */
+        .tool {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            font-size: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+            .tool:hover {
+                background: #007bff;
+                color: white;
+                border-color: #007bff;
+                transform: scale(1.05);
+            }
+
+        .tool-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 5px;
+            border: none;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0056b3, #004099);
+            transform: scale(1.05);
+        }
+
+        /* Special Buttons */
+        #pencilBtn.active {
+            background: linear-gradient(135deg, #ff7b00, #b35600);
+            color: white;
+            border: 2px solid #b35600;
+            box-shadow: 2px 4px 10px rgba(255, 123, 0, 0.4);
+        }
+
+        #pencilBtn:hover {
+            background: linear-gradient(135deg, #0056b3, #003c80);
+        }
+
+
+        .row {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        /* Editor Panel */
+        .big-canvas {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f4f8;
+            padding: 20px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+
+
+        /* Page Buttons */
+        #pageButtonsContainer {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .page-button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+            .page-button:hover {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center; /* Centers horizontally */
+            align-items: center; /* Centers vertically */
+            width: 100%;
+            height: 100vh; /* Full height */
+            position: relative;
+            background: #f0f4f8;
+            overflow: auto;
+        }
+
+
+
+        .page-button.active-page {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+
+        /* Properties Panel */
+        .properties-panel {
+            align-items: center;
+            background: #ffffff;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            border-left: 2px solid #ddd;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+            /* Positioning to stick it to the right */
+            position: fixed;
+            width: 150px;
+            top: 0;
+            right: 0;
+            height: 40vh; /* Make it take full height */
+        }
+
+        .big-canvas {
+            display: flex;
+        }
+
+        .properties-panel input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 100px;
+        }
+
+        .properties-panel button {
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        #search-input{
+            display:block;
+        }
+    
+
+        .object-selector {
+            align-items: center;
+            background: #ffffff;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 10px;
+            overflow-y: auto;
+            border-left: 2px solid #ddd;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+            /* Positioning to stick it to the right */
+            position: fixed;
+            width: 150px;
+            bottom: 0;
+            right: 0;
+            height: 50vh; /* Make it take full height */
+        }
+
+            .object-selector h3 {
+                margin: 0 0 15px 0;
+                font-size: 18px;
+                color: #333;
+            }
+
+        #objectList {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .object-item {
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: #333;
+        }
+
+            .object-item:hover {
+                background: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="toolbar" id="toolbar">
+            @*<button id="selection-tool">Selection Tool</button>*@
+
+            <button class="toolbox-header" onclick="toggleToolbox()">⚡ Toolbox</button>
+            <input type="text" id="searchinput" placeholder="Search tools..." style=" display:none ;width: 100%; padding: 10px; ">
+
+            <div class="shapebox" id="shapebox">
+
+                <div class="tool" onclick="addRectangle(canvas)">
+                    <div class="tool-icon">◻️</div>
+                    <div>Rectangle</div>
+                </div>
+                <div class="tool" onclick="addCircle(canvas)">
+                    <div class="tool-icon">⚪</div>
+                    <div>Circle</div>
+                </div>
+                <div class="tool" id="line-button" onclick="addLine(canvas)">
+                    <div class="tool-icon">〰️</div>
+                    <div>Line</div>
+                </div>
+                <div class="tool" onclick="addCircuitBreaker(canvas)">
+                    <div class="tool-icon">⛔</div>
+                    <div>Circuit Breaker</div>
+                </div>
+                <div class="tool" onclick="addCylinder(canvas)">
+                    <div class="tool-icon">🛢</div>
+                    <div>Cylinder</div>
+                </div>
+                <div class="tool" onclick="addBusbar(canvas)">
+                    <div class="tool-icon">➖</div>
+                    <div>Busbar</div>
+                </div>
+                <div class="tool" onclick="addTransformer(canvas)">
+                    <div class="tool-icon">🔁</div>
+                    <div>Transformer</div>
+                </div>
+                <div class="tool" onclick="addGenerator(canvas)">
+                    <div class="tool-icon">⚡</div>
+                    <div>Generator</div>
+                </div>
+                <div class="tool" onclick="addMotor(canvas)">
+                    <div class="tool-icon">🔄</div>
+                    <div>Motor</div>
+                </div>
+                <div class="tool" onclick="addEarthGround(canvas)">
+                    <div class="tool-icon">🌍</div>
+                    <div>Earth Ground</div>
+                </div>
+                <div class="tool" onclick="addFuse(canvas)">
+                    <div class="tool-icon">💥</div>
+                    <div>Fuse</div>
+                </div>
+                <div class="tool" onclick="addSwitch(canvas)">
+                    <div class="tool-icon">🎚</div>
+                    <div>Switch</div>
+                </div>
+                <div class="tool" onclick="addTriangle(canvas)">
+                    <div class="tool-icon">🔺</div>
+                    <div>Triangle</div>
+                </div>
+                <div class="tool" onclick="addResistor(canvas)">
+                    <div class="tool-icon">〽️</div>
+                    <div>Resistor</div>
+                </div>
+                <div class="tool" onclick="addCapacitor(canvas)">
+                    <div class="tool-icon">📏</div>
+                    <div>Capacitor</div>
+                </div>
+                <div class="tool" onclick="addInductor(canvas)">
+                    <div class="tool-icon">🔄</div>
+                    <div>Inductor</div>
+                </div>
+                <div class="tool" onclick="addBattery(canvas)">
+                    <div class="tool-icon">🔋</div>
+                    <div>Battery</div>
+                </div>
+                <div class="tool" onclick="addLamp(canvas)">
+                    <div class="tool-icon">💡</div>
+                    <div>Lamp</div>
+                </div>
+                <div class="tool" onclick="addUtilitySource(canvas)">
+                    <div class="tool-icon">🔌</div>
+                    <div>Utility Source</div>
+                </div>
+                <div class="tool" onclick="addSingleSwitch(canvas)">
+                    <div class="tool-icon">🔘</div>
+                    <div>Single Switch</div>
+                </div>
+                <div class="tool" onclick="addDoubleThrowSwitch(canvas)">
+                    <div class="tool-icon">🔀</div>
+                    <div>Double Throw Switch</div>
+                </div>
+                <div class="tool" onclick="addDiode(canvas)">
+                    <div class="tool-icon">➡️</div>
+                    <div>Diode</div>
+                </div>
+                <div class="tool" onclick="addLED(canvas)">
+                    <div class="tool-icon">🔆</div>
+                    <div>LED</div>
+                </div>
+                <div class="tool" onclick="addAmmeter(canvas)">
+                    <div class="tool-icon">🅰</div>
+                    <div>Ammeter</div>
+                </div>
+                <div class="tool" onclick="addSingleSwitchOff(canvas)">
+                    <div class="tool-icon">🚫</div>
+                    <div>Single Switch Off</div>
+                </div>
+                <div class="tool" onclick="addVoltmeter(canvas)">
+                    <div class="tool-icon">🔽</div>
+                    <div>Voltmeter</div>
+                </div>
+                <div class="tool" onclick="addArrow(canvas)">
+                    <div class="tool-icon">➡</div>
+                    <div>Arrow</div>
+                </div>
+                <div class="tool" onclick="drawGeneratorSymbol(canvas)">
+                    <div class="tool-icon">⚙️</div>
+                    <div>Generator Symbol</div>
+                </div>
+                <div class="tool" onclick="addreftemp(canvas)">
+                    <div class="tool-icon">📐</div>
+                    <div>SLD Template</div>
+                </div>
+                <div class="tool" onclick="addArc(canvas)">
+                    <div class="tool-icon">🌈</div>
+                    <div>Arc</div>
+                </div>
+                <div class="tool" onclick="addSolenoid(canvas)">
+                    <div class="tool-icon">🌀</div>
+                    <div>Solenoid</div>
+                </div>
+                <div class="tool" onclick="importFromPath('https://upload.wikimedia.org/wikipedia/commons/6/6a/Electrical_symbols_library.svg')">
+                    <div class="tool-icon">🖼️</div>
+                    <div>Import Symbols</div>
+                </div>
+            </div>
+            <button id="pencilBtn" onclick="Pencil()">Activate Pencil</button>
+            <button onclick="addText()">Text</button>
+            <div class="buttonInARow">
+                <button class="tool" onclick="copyObject()">Copy</button>
+                <button class="tool" onclick="pasteObject()">Paste</button>
+                <button class="tool" onclick="cutObject()">Cut</button>
+            </div>
+
+            <button id="groupBtn" onclick="groupSelectedObjects()">Group </button>
+
+            <button id="ungroupBtn" onclick="ungroupSelectedObjects()">Ungroup </button>
+
+            <div class="button-box">
+                <div class="row">
+                    <button onclick="sendForward()">⬆️</button>
+                    <button onclick="sendBackward()">⬇️</button>
+
+                    <button onclick="sendToFront()">⏫</button>
+                    <button onclick="sendToBack()">⏬</button>
+                </div>
+
+                <div id="customShapesContainer">
+                    <h3>My Custom Shapes:</h3>
+                    <div id="buttonsContainer"></div>
+                </div>
+            </div>
+
+
+            <button id="linkingButton" onclick="toggleLinkingTool()">Link Objects</button>
+            <div class="buttonInARow">
+                <button id="undo" onclick="undo()">Undo</button>
+                <button id="redo" onclick="redo()">Redo</button>
+
+                <button id="tool" onclick="deleteObject()">Delete</button>
+            </div>
+            @*<button id="cropButton" onclick="crop()">Crop</button>*@
+            <button onclick="saveCustomShape()">Save Custom Shape</button>
+            <button onclick="importImage(canvas)">Upload Image</button>
+            <button onclick="saveAsSVG()">Save</button>
+            <!-- <button onclick="openEditableSVG()">Edit SVG</button> -->
+            <button onclick="importModifiedSVG()">Import Modified SVG</button>
+            <button onclick="importSVG()">Import SVG</button>
+
+            <button onclick="clearCanvas()">New Project</button>
+
+        </div>
+
+        <!-- <div id="svgEditorModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeSVGEditor()">&times;</span>
+                <h3>Edit SVG</h3>
+                <textarea id="svgEditorTextArea"></textarea>
+                <button onclick="applyEditedSVG()">Apply Changes</button>
+            </div>
+        </div> -->
+        <div>
+            <button class="zoom" onclick="zoomIn()">
+                <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="zoom" onclick="zoomOut()">
+                <i class="fas fa-search-minus"></i>
+            </button>
+
+            <label style=" margin-bottom: 5px; font-family: Arial, sans-serif; font-size: 16px;">
+                <input type="checkbox" id="toggleToolbarCheckbox" onclick="toggleToolbar()" checked style="margin-right: 5px;">
+                Toggle Toolbar
+            </label>
+
+            <label style="margin-bottom: 5px; font-family: Arial, sans-serif; font-size: 16px;">
+                <input type="checkbox" id="toggleObjectSelectorCheckbox" onclick="toggleObjectSelector()" checked style="margin-right: 5px;">
+                Toggle Object Selector
+            </label>
+
+            <label style=" margin-bottom: 5px; font-family: Arial, sans-serif; font-size: 16px;">
+                <input type="checkbox" id="togglePropertiesPanelCheckbox" onclick="togglePropertiesPanel()" checked style="margin-right: 5px;">
+                Toggle Properties Panel
+            </label>
+
+
+
+
+            <div>
+
+
+                <!-- Add Font Awesome CDN -->
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+
+
+                <div class="canvas-container">
+                    <canvas id="canvas" width="1100" height="750"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="object-selector" id="objectSelector">
+            <h3>Object List</h3>
+            <div id="objectList"></div>
+        </div>
+        <div class="properties-panel" id="propertiesPanel">
+            <h3>Properties</h3>
+            <script src="~/Scripts/canvassize.js"></script>
+            <input type="number" id="canvasWidth" placeholder="Width" value="1100">
+
+            <input type="number" id="canvasHeight" placeholder="Height" value="750">
+            <button onclick="resizeCanvas(canvas)">Resize Canvas</button>
+            <!-- <label>Fill Color: <input type="color" id="fillColor" onchange="changeFillColor()"></label>
+            <label>Border Color: <input type="color" id="borderColor" onchange="changeBorderColor()"></label>
+            <label>Border Width: <input type="number" id="borderWidth" value="1" onchange="changeBorderWidth()"></label>
+            <label>Font Size: <input type="number" id="fontSize" value="20" onchange="changeFontSize()"></label> -->
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script src="~/Scripts/Shapes.js"></script>
+    <script src="~/Scripts/script.js"></script>
+    <script src="~/Scripts/buttonforcustom.js"></script>
+    <script src="~/Scripts/Undo.js"></script>
+    <script src="~/Scripts/toolbardrawer.js"></script>
+    <script src="~/Scripts/Linetool.js"></script>
+    <script src="~/Scripts/connection.js"></script>
+    <script src="~/Scripts/Zoom.js"></script>
+    <script src="~/Scripts/importImage.js"></script>
+    <script src="~/Scripts/importedshapes.js"></script>
+    <script src="~/Scripts/objselector.js"></script>
+    <script src="~/Scripts/toggletools.js"></script>
+    <script src="~/Scripts/ToolSearchBox.js"></script>
+    <!-- <script src = "pointerlocation.js"></script> -->
+    <div id="shape-list" style="display: none; position: absolute; background: white; border: 1px solid black; padding: 10px;">
+        <!-- Shape buttons will be added here dynamically -->
+    </div>
+</body>
+</html>
